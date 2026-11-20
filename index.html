@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Curiosity: Know — downloads</title>
+<meta name="description" content="Download Curiosity: Know, a calm reader for Wikipedia. Windows portable build and Android APKs.">
+<style>
+  :root {
+    --paper: #f6f1e5;
+    --card: #fbf7ec;
+    --ink: #1e2a24;
+    --muted: #6d6a5e;
+    --pine: #2e4b40;
+    --brass: #a8642c;
+    --hairline: #e3dcc8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.6 "Segoe UI", system-ui, sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 22px 80px; }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.1rem;
+    font-weight: 600;
+    letter-spacing: .2px;
+    margin: 0 0 6px;
+  }
+  .tagline { color: var(--muted); margin: 0 0 30px; }
+  .pill {
+    display: inline-block;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 1px 10px;
+    font-size: .74rem;
+    color: var(--muted);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  h2 {
+    font-family: Georgia, serif;
+    font-size: 1.15rem;
+    margin: 34px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .release {
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .release.latest { border-color: var(--pine); }
+  .rel-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rel-title { font-weight: 600; font-size: 1.05rem; }
+  .rel-date { color: var(--muted); font-size: .8rem; }
+  .badge {
+    font-size: .72rem;
+    color: #fff;
+    background: var(--pine);
+    border-radius: 999px;
+    padding: 2px 9px;
+  }
+  .notes { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
+  .files { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; margin-top: 14px; }
+  a.file {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: baseline;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 9px 12px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: .86rem;
+    background: #fffdf7;
+  }
+  a.file:hover { border-color: var(--brass); }
+  a.file .size { color: var(--muted); font-size: .74rem; white-space: nowrap; }
+  a.file span.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .foot {
+    margin-top: 46px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hairline);
+    color: var(--muted);
+    font-size: .8rem;
+  }
+  .foot a { color: var(--pine); }
+  .state { color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Curiosity: Know</h1>
+  <p class="tagline">A calm reader for Wikipedia — today's most-read articles, one clean page, no noise.</p>
+
+  <h2>Latest release</h2>
+  <div id="latest" class="state">Loading…</div>
+
+  <h2>All versions</h2>
+  <div id="history" class="state">Loading…</div>
+
+  <div class="foot">
+    <p>Text and images inside the app come from Wikipedia and are published under CC BY-SA 4.0 — the volunteers who write it are credited in the app.</p>
+    <p>Windows: download the zip, unpack it anywhere and run <code>CuriosityKnow.exe</code>. Android: pick the APK that matches your phone; <em>universal</em> works everywhere.</p>
+  </div>
+</div>
+
+<script>
+const REPO = 'Ahmed-Ali-M/curiosity-know-downloads';
+const GB = 1024 * 1024 * 1024;
+function sizeOf(bytes) {
+  if (bytes > GB / 2) return (bytes / GB).toFixed(2) + ' GB';
+  if (bytes > 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  return Math.round(bytes / 1024) + ' KB';
+}
+function nice(name) {
+  return name.replace(/\.apk$/, '').replace(/\.zip$/, '')
+    .replace(/CuriosityKnow-/, 'Windows (x64) — ')
+    .replace(/-universal$/, ' · Android · universal')
+    .replace(/-arm64-v8a$/, ' · Android · arm64')
+    .replace(/-armeabi-v7a$/, ' · Android · armv7')
+    .replace(/-x86_64$/, ' · Android · x86_64')
+    .replace(/\.aab$/, ' — Android · app bundle');
+}
+function render(rel, latest) {
+  const files = rel.assets.map(a =>
+    `<a class="file" href="${a.browser_download_url}" download>` +
+      `<span class="name">${nice(a.name)}</span>` +
+      `<span class="size">${sizeOf(a.size)}</span></a>`).join('');
+  const div = document.createElement('div');
+  div.className = 'release' + (latest ? ' latest' : '');
+  const title = rel.tag_name.replace(/^v/, '');
+  div.innerHTML =
+    `<div class="rel-head"><span class="rel-title">Version ${title}</span>` +
+    (latest ? '<span class="badge">latest</span>' : '') +
+    `<span class="rel-date">${new Date(rel.published_at).toLocaleDateString(
+      undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>` +
+    (rel.body ? `<p class="notes">${rel.body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>')}</p>` : '') +
+    `<div class="files">${files}</div>`;
+  return div;
+}
+async function load() {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO}/releases?per_page=10`,
+      { headers: { Accept: 'application/vnd.github+json' } });
+    if (!res.ok) throw new Error(res.status);
+    const rels = (await res.json()).filter(r => !r.draft && r.assets.length);
+    const latest = document.getElementById('latest');
+    const history = document.getElementById('history');
+    latest.className = ''; history.className = '';
+    if (!rels.length) {
+      latest.textContent = 'No published builds yet.';
+      return;
+    }
+    latest.replaceChildren(render(rels[0], true));
+    history.replaceChildren(...rels.slice(1).map(r => render(r, false)));
+    if (!rels.slice(1).length) history.innerHTML =
+      '<span class="state">Older versions will appear here.</span>';
+  } catch (e) {
+    document.getElementById('latest').textContent =
+      'Could not load the release list. Try again later.';
+  }
+}
+load();
+</script>
+</body>
+</html>
